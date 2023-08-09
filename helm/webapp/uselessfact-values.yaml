@@ -1,0 +1,9 @@
+service:
+  name: uselessfact-service
+  port: 80
+  containerPort: 5000
+  image:
+    repository: avitals53/webapp
+    tag: v1
+  env:
+    URL: "https://uselessfacts.jsph.pl/random.json"

@@ -1,0 +1,6 @@
+apiVersion: v3
+name: webapp
+description: Web Application
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

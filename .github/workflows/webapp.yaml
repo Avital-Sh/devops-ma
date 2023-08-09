@@ -1,0 +1,43 @@
+name: webapp workflow
+
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        description: 'Microservice name'
+        required: true
+        type: string
+
+jobs:
+  pullsource:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Pull source code
+      uses: actions/checkout@v3
+
+  createimage:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build dockerfile 
+      uses: docker/build-push-action@v4
+      run: docker build ../../. -t ${{ github.run_number }}
+      with:
+        push: true
+        tags: ${{ secrets.DOCKERHUB_USERNAME }}/webapp:${{ github.run_number }}
+    
+    - name: Deploy ${{ service_name }}
+      uses: deliverybot/helm@v1
+      run: helm upgrade --install ${{ service_name }} webapp -f ./webapp/${{ service_name }}-values.yaml --set service.image.tag=${{ github.run_number }}
+      with:
+        service_name: '${{ github.event.inputs.service_name }}'
+
+
