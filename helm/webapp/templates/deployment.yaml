@@ -2,8 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Values.service.name }}
+  namespace: {{ .Release.Namespace }}
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: {{ .Values.service.name }}
@@ -18,13 +19,17 @@ spec:
           ports:
             - containerPort: 80
           env:
-            - name: URL
+            - name: URL_TO_CONSUME
               value: {{ .Values.service.env.URL }}
           readinessProbe:
             httpGet:
               path: /ready
               port: 80
+            initialDelaySeconds: 7
+            periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /ready
               port: 80
+            initialDelaySeconds: 7
+            periodSeconds: 10

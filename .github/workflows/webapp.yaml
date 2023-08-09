@@ -3,41 +3,60 @@ name: webapp workflow
 on:
   workflow_dispatch:
     inputs:
-      service_name:
+      SVC_NAME:
         description: 'Microservice name'
         required: true
         type: string
 
+env:
+  SVC_NAME: '${{ github.event.inputs.SVC_NAME }}'
+
 jobs:
-  pullsource:
+  pull-source:
     runs-on: ubuntu-latest
     steps:
     - name: Pull source code
       uses: actions/checkout@v3
 
-  createimage:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Login to Docker Hub
+    - name: Login to DockerHub
       uses: docker/login-action@v2
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - uses: docker/build-push-action@v4
-    - name: Build Dockerfile 
-      run: docker build ../../. -t ${{ github.run_number }}
       with:
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/webapp:${{ github.run_number }}
+    - name: Build Dockerfile 
+      run: docker build ../../. -t ${{ github.run_number }}
     
-    - uses: deliverybot/helm@v1
-    - name: Deploy ${{ service_name }}
-      run: helm upgrade --install ${{ service_name }} webapp -f ./webapp/${{ service_name }}-values.yaml --set service.image.tag=${{ github.run_number }}
-      with:
-        service_name: '${{ github.event.inputs.service_name }}'
+    - uses: WyriHaximus/github-action-helm3@v3
+    - name: Deploy Microservice
+      run: helm upgrade --install $SVC_NAME webapp -n webapp -f ./webapp/$SVC_NAME-values.yaml --set service.image.tag=${{ github.run_number }} --create-namespace
 
+    - name: Test routes respones 
+      run: |
+        service_url='https://www.google.com'
+        uselessfact_response_code=$(curl -sL -w "%{http_code}" $service_url/uselessfact -o /dev/null)
+        funnyfact_response_code=$(curl -sL -w "%{http_code}" $service_url/funnyfact -o /dev/null)
+        ready_response_code=$(curl -sL -w "%{http_code}" $service_url/ready -o /dev/null)
+        if [ "$uselessfact_response_code" != "200" ]; then
+          echo "Error: /uselessfact endpoint returned non-200 response code: $uselessfact_response_code"
+          exit 1
+        fi
+        if [ "$funnyfact_response_code" != "200" ]; then
+          echo "Error: /funnyfact endpoint returned non-200 response code: $funnyfact_response_code"
+          exit 1
+        fi
+        if [ "$ready_response_code" != "200" ]; then
+          echo "Error: /ready endpoint returned non-200 response code: $ready_response_code"
+          exit 1
+        fi
 
