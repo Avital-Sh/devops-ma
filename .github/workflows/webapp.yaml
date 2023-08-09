@@ -27,15 +27,15 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build dockerfile 
-      uses: docker/build-push-action@v4
+    - uses: docker/build-push-action@v4
+    - name: Build Dockerfile 
       run: docker build ../../. -t ${{ github.run_number }}
       with:
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/webapp:${{ github.run_number }}
     
+    - uses: deliverybot/helm@v1
     - name: Deploy ${{ service_name }}
-      uses: deliverybot/helm@v1
       run: helm upgrade --install ${{ service_name }} webapp -f ./webapp/${{ service_name }}-values.yaml --set service.image.tag=${{ github.run_number }}
       with:
         service_name: '${{ github.event.inputs.service_name }}'
