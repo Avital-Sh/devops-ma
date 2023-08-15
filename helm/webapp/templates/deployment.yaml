@@ -21,6 +21,8 @@ spec:
           env:
             - name: URL_TO_CONSUME
               value: {{ .Values.service.env.URL }}
+            - name: SERVICE_PORT
+              value: "{{ .Values.service.env.SERVICE_PORT }}"
           readinessProbe:
             httpGet:
               path: /ready

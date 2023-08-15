@@ -5,3 +5,4 @@ service:
     tag: v1
   env:
     URL: "https://api.chucknorris.io/jokes/random"
+    SERVICE_PORT: 5001

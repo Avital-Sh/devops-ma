@@ -43,9 +43,9 @@ jobs:
 
     - name: Test routes respones 
       run: |
-        service_url='https://www.google.com'
-        uselessfact_response_code=$(curl -sL -w "%{http_code}" $service_url/uselessfact -o /dev/null)
-        funnyfact_response_code=$(curl -sL -w "%{http_code}" $service_url/funnyfact -o /dev/null)
+        service_url='localhost'
+        uselessfact_response_code=$(curl -sL -w "%{http_code}" $service_url:5002/uselessfact -o /dev/null)
+        funnyfact_response_code=$(curl -sL -w "%{http_code}" $service_url:5001/funnyfact -o /dev/null)
         ready_response_code=$(curl -sL -w "%{http_code}" $service_url/ready -o /dev/null)
         if [ "$uselessfact_response_code" != "200" ]; then
           echo "Error: /uselessfact endpoint returned non-200 response code: $uselessfact_response_code"

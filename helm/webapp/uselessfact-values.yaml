@@ -5,3 +5,4 @@ service:
     tag: v1
   env:
     URL: "https://uselessfacts.jsph.pl/random.json"
+    SERVICE_PORT: 5002

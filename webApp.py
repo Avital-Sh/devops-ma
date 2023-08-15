@@ -3,6 +3,7 @@ import requests
 from flask import Flask, Response
 
 app = Flask(__name__)
+servicePort = os.environ.get('SERVICE_PORT')
 
 @app.route('/uselessfact')
 def uselessfact():
@@ -29,4 +30,4 @@ def ready():
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host="localhost", port=servicePort)
